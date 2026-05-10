@@ -45,8 +45,8 @@ A Data-Structure Selection Framework Based on Average Degree}
 \begin{abstract}
 Dijkstra's algorithm with a lazy deletion heap (heapq) is the de facto
 standard for shortest-path computation, yet the overhead of its
-``push-and-skip'' strategy has never been rigorously quantified as a
-function of graph structure.  We identify \emph{skip\_ratio}---the
+``push-and-skip'' strategy has not, to our knowledge, been
+systematically quantified as a closed-form function of graph structure.  We identify \emph{skip\_ratio}---the
 fraction of heap pops that are immediately discarded as stale---as the
 primary hidden cost, and show empirically that it follows a power law
 in average degree $k$:
@@ -94,10 +94,12 @@ cache behavior, and is recommended in every major algorithms textbook and
 competitive-programming guide.
 
 Yet the cost of these silently discarded pops---what we term
-\textbf{skip\_ratio}---has never been quantified as a function of graph
-topology.  Practitioners accept the overhead as ``negligible'' without
-empirical evidence, while theoreticians focus on asymptotic complexity and
-ignore constant-factor behavior.  As a result, no principled criterion
+\textbf{skip\_ratio}---has not, to the best of our knowledge, been
+systematically quantified as a closed-form function of graph structure.
+Prior experimental surveys (e.g., Cherkassky et al.~\cite{cherkassky1996},
+Larkin et al.~\cite{larkin2014}) treat the lazy deletion overhead as an
+implementation detail rather than decomposing it by graph properties.
+As a result, no principled criterion
 exists for deciding \emph{when} the overhead is worth replacing with an
 alternative data structure.
 
@@ -199,9 +201,10 @@ overhead itself}---a factor that prior engineering studies treat as given
 rather than as a variable to optimize.  Closest in spirit is Chen
 et al.~\cite{chen2007}, who study priority queue performance in shortest-path
 algorithms, but without decomposing overhead by average degree or deriving a
-predictive formula.  To the best of our knowledge, the power-law
-characterization $\text{skip\_ratio}(k)\approx 1-c/k^{\alpha}$ and the
-data-structure selection framework grounded in it are novel contributions.
+predictive formula.  To the best of our knowledge, no prior work derives a closed-form
+power-law characterization $\text{skip\_ratio}(k)\approx 1-c/k^{\alpha}$
+or a data-structure selection framework grounded in skip\_ratio as a
+function of average degree.
 
 % ──────────────────────────────────────────────────────────────────────
 %  2. BACKGROUND
@@ -242,9 +245,15 @@ We define:
   \text{skip\_ratio} \;=\; \frac{\text{skip\_pop}}{\text{total\_pop}}
     \;=\; 1 - \frac{V}{\text{push\_count}},
 \]
-where the second equality holds because every non-skip pop settles exactly
-one vertex, and push\_count $=$ pop\_count (every pushed entry is
-eventually popped or abandoned in Dial's).
+where the second equality holds for the \textbf{lazy binary heap} as
+follows: every non-skip pop settles exactly one vertex, so
+total\_pop $-$ skip\_pop $= V$; in the standard implementation the
+while-loop runs until the heap is empty, so total\_pop $=$ push\_count
+exactly, giving $\text{skip\_ratio} = 1 - V/\text{push\_count}$.
+For \textbf{Dial's bucket queue}, some pushed entries are abandoned in
+future buckets without ever being popped (Section~\ref{sec:pruning}),
+so push\_count $>$ total\_pop; in that case we measure skip\_ratio
+directly as skip\_pop/total\_pop from instrumented bucket operations.
 
 \subsection{Dial's Bucket Queue}
 
@@ -314,9 +323,9 @@ than $4\times$ smaller than the harmonic formula:
 \end{equation}
 with $R^2=0.984$ for uniform integer weights on $[1,100]$.
 While V-independence is implied qualitatively by the harmonic theory,
-our formula is the first to quantify it precisely and to show that
-the power law is the correct functional form in the practically relevant
-range $k\in[4,512]$.
+our formula quantifies it precisely and demonstrates that a power law
+provides the tightest empirical fit (4$\times$ smaller RMS residual than
+the harmonic formula) in the practically relevant range $k\in[4,512]$.
 The exponent $\alpha$ is not a universal constant: we show in
 Section~\ref{sec:weightdist} that it depends on the weight distribution
 through the log-ratio $\log(W_{\max}/W_{\min})$, converging to
@@ -372,6 +381,14 @@ $Y_i = \log c - \alpha X_i$.
 The fit uses $k_i \in \{4,8,16,32,64,128,256,512\}$ pooled from
 Experiments~2 and~A (means across all $V$ values at each $k$),
 yielding $\hat{c}=0.884$, $\hat{\alpha}=0.262$, $R^2=0.984$.
+OLS standard errors, computed from the residual variance on $n=8$
+support points, are $\mathrm{SE}(\hat\alpha)\approx 0.013$ and
+$\mathrm{SE}(\hat c)\approx 0.032$.
+For the practical range $k\in[4,64]$, a complementary fit on the
+theory-probe dataset (Section~\ref{sec:weightdist}) gives
+$\hat{\alpha}=0.293\pm 0.012$ (OLS SE) with bootstrap 95\% CI
+$[0.254,\,0.323]$ ($B{=}10{,}000$), consistent with the full-range
+estimate at the two-standard-error level.
 The same log-log OLS procedure is applied independently for each weight
 distribution in Section~\ref{sec:weightdist}.
 
@@ -514,8 +531,9 @@ Equation~\eqref{eq:powerlaw} was fitted for uniform integer weights
 on $[1,100]$.  A natural question is whether $\alpha=0.262$ is a
 universal property of the graph structure or an artifact of the weight
 distribution.  We answer this with a systematic study across five
-distribution families (Experiments D1--D3 below;
-$V=3{,}000$, $k\in\{4,8,16,32,64,128\}$, 30~repetitions each).
+distribution families (all at $V=3{,}000$, $k\in\{4,8,16,32,64,128\}$,
+30~repetitions each; scripts \texttt{theory\_probe\_v4.py}, outputs in
+\texttt{resultsTheory/}).
 
 \noindent\textbf{Finding~1: $\alpha$ grows with weight range and
 shrinks with $k$-range.}
@@ -626,8 +644,8 @@ bound is never violated (ratio $=0.855$ at $k=512$ for large-$W$).
 \end{axis}
 \end{tikzpicture}
 \caption{Local slope $\alpha(k)$ converges toward $1/H_k$ as $k$ grows,
-consistent with the asymptotic skip\_ratio form $1-c/H_k$ (Exp.~D4,
-$V=10{,}000$, continuous float weights).}
+consistent with the asymptotic skip\_ratio form $1-c/H_k$
+(theory\_probe\_v4, $V=3{,}000$, continuous float weights).}
 \label{fig:local_alpha}
 \end{figure}
 
@@ -961,8 +979,10 @@ All prior comparisons used $W{=}100$.  Experiment~B varies $W\in\{100,\,500,\,1{
 with $V{=}10{,}000$ fixed to characterize the interaction between $W$ and
 Dial's speedup.  For sparse graphs ($k{=}8$), Dial's advantage erodes
 sharply: speedup is $2.85\times$ at $W{=}1{,}000$ but falls to $0.80\times$
-at $W{=}5{,}000$ and $0.66\times$ at $W{=}10{,}000$, with a breakeven
-threshold $W^{*}{\approx}4{,}600$ (linear interpolation).  For denser
+at $W{=}5{,}000$ and $0.66\times$ at $W{=}10{,}000$, placing the
+breakeven threshold $W^{*}$ in the range $[1{,}000,\,5{,}000]$ for this
+setting (the measured points bracket the crossover; precise location
+requires finer $W$ sampling).  For denser
 graphs ($k{\geq}32$), Dial's remains faster than heapq even at $W{=}10{,}000$
 (${\geq}1.07\times$ speedup), so $W^{*}{>}10{,}000$ in this regime.  The
 mechanism is the circular-array traversal cost: with $W{+}1$ buckets,
@@ -1009,7 +1029,8 @@ Fibonacci heap &
   theoretical O$(V\log V{+}E)$ advantage is not realized. \\
 \bottomrule
 \multicolumn{3}{p{7.3cm}}{\textsuperscript{\dag}\small
-  $W^{*}$ depends on $k$: for $k{=}8$, $W^{*}{\approx}4{,}600$;
+  $W^{*}$ depends on $k$: for $k{=}8$, $W^{*}\in[1{,}000,\,5{,}000]$
+  (crossover observed between these measured values);
   for $k{\geq}32$, Dial's remains faster even at $W{=}10{,}000$
   (${\geq}1.07\times$ speedup), so $W^{*}{>}10{,}000$ in this regime.
   See Section~\ref{sec:framework}.}
@@ -1179,9 +1200,13 @@ mandated by a formal proof system.
 
 \noindent\textbf{Indexed and $d$-ary heaps (supplemental experiment).}
 To probe the two most commonly suggested alternatives to lazy binary heapq,
-we ran a Python supplemental experiment across $V\in\{500,1000,3000,5000,10000\}$
-and $k\in\{4,8,16,32,64,128\}$ with five repetitions each
-($\mathrm{U}[1,100]$, same protocol as Sections~\ref{sec:analysis}--\ref{sec:comparison}).
+we ran a Python supplemental experiment (\texttt{dijkstra\_heap\_compare.py})
+across $V\in\{500,1000,3000,5000,10000\}$ and $k\in\{4,8,16,32,64,128\}$
+with five repetitions each ($\mathrm{U}[1,100]$).
+\emph{Hardware note:} this experiment ran on a local MacBook Pro (Apple M3,
+macOS), not on the GCP e2-standard-4 instance used for the main experiments;
+timing comparisons within this experiment are internally consistent, but
+cross-experiment absolute times should not be compared directly.
 
 \textit{Skip-ratio is implementation-invariant.}
 All three lazy-deletion variants (binary, 4-ary, 8-ary heaps) produced
@@ -1218,12 +1243,26 @@ them remains open.
 
 \noindent\textbf{Statistical note.}
 Main experiments (Sections~\ref{sec:analysis}--\ref{sec:comparison}) use
-5--10 repetitions per $(V,k)$ configuration and report means.  Formal
-confidence intervals are not provided; however, the observed inter-run
-variation is $\leq 0.013$ in skip\_ratio across all $(V,k)$ pairs
-(Table~\ref{tab:vindependence}), indicating high stability.
+5--10 repetitions per $(V,k)$ configuration and report means.
+The observed inter-run variation is $\leq 0.013$ in skip\_ratio across
+all $(V,k)$ pairs (Table~\ref{tab:vindependence}), indicating high stability.
 Weight-distribution experiments (Section~\ref{sec:weightdist}) use
-30 repetitions ($V=3{,}000$) or 20 repetitions ($V=10{,}000$).
+30 repetitions ($V=3{,}000$).
+
+\noindent\textbf{Source-vertex sensitivity.}
+All main experiments use source vertex~0 (seed~42).  To verify that this
+design choice does not inflate or suppress the measured skip\_ratio, we
+ran a supplementary experiment sampling 20 uniformly random source
+vertices across 5 graph instances, for $V\in\{1{,}000,\,3{,}000,\,10{,}000\}$
+and $k\in\{4,8,16,32,64,128\}$ ($\mathrm{U}[1,100]$).
+The coefficient of variation of skip\_ratio across sources is at most
+$2.6\%$ (at $V=1{,}000$, $k=4$, where skip\_ratio is smallest) and falls
+below $0.5\%$ for $k\geq 64$.
+Standard deviation across sources does not exceed $0.009$ at any $(V,k)$
+tested.  We conclude that skip\_ratio is effectively source-independent for
+the ER-like graphs studied here, consistent with the locally tree-like
+theory (the expected push count per vertex depends only on local degree
+structure, not on which vertex is the source).
 
 \noindent\textbf{Future work.}
 Three open questions arise naturally from this study:
@@ -1291,9 +1330,10 @@ structure.  Our key findings are:
 The practical takeaway is:
 \emph{skip\_ratio is a tight function of average degree $k$ and weight
 distribution; matching graph structure to the right priority queue via
-our selection framework achieves up to $4\times$ peak speedup.}
-Specifically: use Dial's for sparse integer weights, heapq for float
-weights, and avoid Fibonacci heaps in practice.
+our selection framework achieves up to $4.3\times$ peak speedup.}
+Specifically: use Dial's for sparse integer weights ($W \lesssim 1{,}000$
+for $k{=}8$; any $W$ for $k{\geq}32$), heapq for float weights or large
+$W$, and avoid Fibonacci heaps in practice.
 
 % ──────────────────────────────────────────────────────────────────────
 %  REFERENCES
