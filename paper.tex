@@ -1177,22 +1177,44 @@ eventually manifest, but such densities exceed the range studied here.
 We recommend against Fibonacci heaps unless theoretical guarantees are
 mandated by a formal proof system.
 
-\noindent\textbf{Structures not evaluated.}
-This study compares three structures: binary-heap heapq, Fibonacci heap,
-and Dial's bucket queue.  Several practically important alternatives
-are not evaluated.
-\emph{$D$-ary heaps}~\cite{ahuja1993} reduce tree height to increase
-cache efficiency; their skip\_ratio profile under lazy deletion mirrors
-binary heapq and falls within the same power-law characterization, but
-the constant factors differ and merit direct measurement.
-\emph{Indexed binary heaps} (with a position array enabling O(1) decrease-key
-lookup) eliminate stale entries entirely, avoiding skip\_ratio overhead
-at the cost of random-access memory; they may outperform heapq on
-sparse float-weight graphs.
-\emph{Pairing heaps} offer a simple decrease-key with favorable amortized
-cost; their lazy-deletion variant has not been characterized.
-Extending the selection framework to these structures is a natural
-next step.
+\noindent\textbf{Indexed and $d$-ary heaps (supplemental experiment).}
+To probe the two most commonly suggested alternatives to lazy binary heapq,
+we ran a Python supplemental experiment across $V\in\{500,1000,3000,5000,10000\}$
+and $k\in\{4,8,16,32,64,128\}$ with five repetitions each
+($\mathrm{U}[1,100]$, same protocol as Sections~\ref{sec:analysis}--\ref{sec:comparison}).
+
+\textit{Skip-ratio is implementation-invariant.}
+All three lazy-deletion variants (binary, 4-ary, 8-ary heaps) produced
+skip\_ratios within $\pm 0.001$ of each other at every $(V,k)$ point
+($V=3{,}000$ representative values: $0.242$, $0.438$, $0.573$, $0.660$,
+$0.711$, $0.746$ for $k=4,8,16,32,64,128$).
+As expected, the \emph{indexed} binary heap achieves skip\_ratio$\,=0$
+by maintaining a position array for O(log $V$) decrease-key.
+
+\textit{Lazy binary heapq vs.\ indexed heap (Python).}
+Despite zero skip overhead, the indexed heap is consistently \emph{slower}
+than lazy heapq for $k\leq 32$: speedup (indexed$/$lazy) ranges from
+$3.4\times$ at $k=4$ to $1.5\times$ at $k=32$ ($V=10{,}000$),
+because each decrease-key requires a random-access position lookup and
+upward sift, whereas heapq's lazy push is a simple append.
+The gap closes near $k\approx 64$--$128$ (speedup $\approx 1.0$),
+where the high skip\_ratio ($\approx70$--$75\%$) begins to offset indexed
+heap's bookkeeping cost.  These Python results corroborate the
+$1.5\times$ geometric-mean speedup of lazy heapq reported in
+Section~\ref{sec:comparison}.
+
+\textit{$d$-ary heaps (Python).}
+4-ary and 8-ary lazy heaps are uniformly \emph{slower} than binary heapq
+across all $(V,k)$ configurations tested.  The extra branching factor
+reduces tree height but adds per-level comparison work with no cache
+benefit in Python's interpreted loop; the slowdown versus binary ranges
+from $1.2\times$ at $k=4$ to $1.7\times$ at $k=64$.  In optimized
+C++, $d$-ary heaps can outperform binary heaps due to SIMD-friendly
+child comparisons~\cite{ahuja1993}; extending the C++ benchmark to $d$-ary
+heaps is a natural next step.
+\emph{Pairing heaps} offer favorable amortized decrease-key and have not been
+characterized under lazy deletion; extending the selection framework to
+them remains open.
 
 \noindent\textbf{Statistical note.}
 Main experiments (Sections~\ref{sec:analysis}--\ref{sec:comparison}) use
