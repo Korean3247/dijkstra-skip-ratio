@@ -46,29 +46,31 @@ A Data-Structure Selection Framework Based on Average Degree}
 Dijkstra's algorithm with a lazy deletion heap (heapq) is the de facto
 standard for shortest-path computation, yet the overhead of its
 ``push-and-skip'' strategy has not, to our knowledge, been
-systematically quantified as a closed-form function of graph structure.  We identify \emph{skip\_ratio}---the
-fraction of heap pops that are immediately discarded as stale---as the
-primary hidden cost, and show empirically that it follows a power law
-in average degree $k$:
-$\text{skip\_ratio}(k)\approx 1 - 0.884/k^{0.262}$ ($R^2{=}0.984$,
-$\mathrm{U}[1,100]$ weights), independent of graph size $V$ across
-more than three orders of magnitude ($V\in[500,\,10^6]$).
+systematically quantified as a closed-form function of graph structure.
+We identify \emph{skip\_ratio}---the fraction of heap pops discarded as
+stale---as the primary hidden cost, and show empirically that it follows
+a power law in average degree $k$:
+$\text{skip\_ratio}(k)\approx 1 - 0.884/k^{0.262}$
+($R^2{=}0.984$, $\mathrm{U}[1,100]$ weights, OLS SE $\pm0.013$ on the
+exponent), independent of graph size $V$ across more than three orders
+of magnitude ($V\in[500,\,10^6]$; source-vertex CV $<3\%$).
 Systematic experiments across weight distributions reveal an
 empirical \emph{two-regime model}: the power-law exponent $\alpha$ is
-strongly associated with $\log(W_{\max}/W_{\min})$ and the fitted $k$-range,
-and the local slope converges toward $1/H_k$ as $k\to\infty$---connecting
-the empirical formula to the classical harmonic record-minimum bound.
+strongly associated with $\log(W_{\max}/W_{\min})$ and the fitted
+$k$-range, and the local slope converges toward $1/H_k$ as
+$k\to\infty$---connecting the empirical formula to the classical
+harmonic record-minimum bound.
 We further show that na\"ive push-blocking is fundamentally flawed
 (up to 74\% incorrect distances), while Dial's bucket queue achieves up
 to $4.3\times$ peak speedup (geometric mean $2.9\times$ in C++,
 $1.5\times$ in Python) via a ``natural pruning'' mechanism, and
-Fibonacci heap is $1.5$--$2.3\times$ \emph{slower} than heapq
-despite its asymptotic optimality.  The power-law formula generalizes to Barab\'{a}si--Albert
-scale-free graphs ($<8\%$ error) but diverges on planar road
-networks---consistent with the locally tree-like structure underlying
-the formula's derivation.
-We conclude with a practitioner-ready data-structure selection
-framework grounded in $k$ and weight type.
+Fibonacci heap is $1.5$--$2.3\times$ \emph{slower} than heapq despite
+its asymptotic optimality.
+The power-law formula generalizes to Barab\'{a}si--Albert scale-free
+graphs ($<8\%$ error) but diverges on planar road networks---consistent
+with the locally tree-like structure underlying the formula's derivation.
+We conclude with a practitioner-ready data-structure selection framework
+grounded in $k$ and weight type.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -387,8 +389,13 @@ $\mathrm{SE}(\hat c)\approx 0.032$.
 For the practical range $k\in[4,64]$, a complementary fit on the
 theory-probe dataset (Section~\ref{sec:weightdist}) gives
 $\hat{\alpha}=0.293\pm 0.012$ (OLS SE) with bootstrap 95\% CI
-$[0.254,\,0.323]$ ($B{=}10{,}000$), consistent with the full-range
-estimate at the two-standard-error level.
+$[0.254,\,0.323]$ ($B{=}10{,}000$).
+The higher value relative to the full-range estimate ($\hat\alpha=0.262$,
+$k\in[4,512]$) is expected: as the fitted $k$-range expands,
+$\hat\alpha$ decreases because the power-law exponent is itself a
+function of $k$ in the two-regime model (Finding~1,
+Section~\ref{sec:weightdist}).  Both estimates are valid within their
+respective $k$-ranges.
 The same log-log OLS procedure is applied independently for each weight
 distribution in Section~\ref{sec:weightdist}.
 
@@ -446,20 +453,25 @@ Data pooled from Experiments~2 and~A ($k\in[4,\,512]$).}
 \end{figure}
 
 \noindent\textbf{V-independence.}
-Table~\ref{tab:vindependence} reports skip\_ratio across \emph{six} orders of
-magnitude in $V$ for values of $k\in\{8,32,64\}$, extended to
+Table~\ref{tab:vindependence} reports skip\_ratio across more than three
+orders of magnitude in $V$ ($V\in[500,\,10^6]$, ratio $2{,}000\times$)
+for representative values $k\in\{4,8,16,32,64\}$, extended to
 $V\in\{200{,}000;\,500{,}000;\,1{,}000{,}000\}$ in Experiment~A.
 The maximum variation at fixed $k$ is $\Delta\leq 0.013$ across the full
-range $V\in[500,\,10^6]$, confirming that skip\_ratio is determined solely
-by $k$.  Figure~\ref{fig:vindep} visualizes this: the curves for each $k$
+range, confirming that skip\_ratio is determined primarily by $k$
+(for fixed weight distribution and graph model).
+Figure~\ref{fig:vindep} visualizes this: the curves for each $k$
 are essentially flat from $V=500$ to $V=10^6$.
 
 \begin{table}[t]
 \centering
 \caption{skip\_ratio across $V$ at fixed $k$ (Experiments~2 and A).
 Variation within each column is $\leq 0.013$ across more than three
-orders of magnitude ($V\in[500,\,10^6]$).  Entries marked ``---'' were not measured at that $(V,k)$
-combination.}
+orders of magnitude ($V\in[500,\,10^6]$).
+Table shows representative rows only; intermediate values
+($V\in\{5{,}000,\,10{,}000,\,100{,}000\}$ from Exp.~2,
+plotted in Figure~\ref{fig:vindep}) lie within the same range.
+Entries marked ``---'' were not measured at that $(V,k)$ combination.}
 \label{tab:vindependence}
 \small
 \setlength{\tabcolsep}{4pt}
@@ -804,6 +816,8 @@ We compare three algorithms under identical graph conditions
         C++ \texttt{priority\_queue<>}.
   \item \textbf{Fibonacci}: decrease-key Dijkstra with a hand-crafted
         Fibonacci heap (Python and C++, same from-scratch implementation).
+        Correctness verified by comparing distances against heapq output
+        on all tested instances; maximum distance error is $0$ throughout.
   \item \textbf{Dial's}: circular bucket queue, integer weights $W=100$.
 \end{itemize}
 
@@ -1292,9 +1306,10 @@ Three open questions arise naturally from this study:
 \section{Conclusion}
 \label{sec:conclusion}
 
-We have presented the first systematic empirical characterization of the
-lazy deletion overhead in Dijkstra's algorithm as a function of graph
-structure.  Our key findings are:
+We have presented a systematic empirical characterization of the
+lazy deletion overhead in Dijkstra's algorithm as a closed-form function
+of graph structure, filling a gap in prior experimental surveys that
+treat this overhead as a fixed implementation detail.  Our key findings are:
 
 \begin{enumerate}
   \item \textbf{Power-law skip\_ratio, V-independent.}
