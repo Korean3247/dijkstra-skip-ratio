@@ -1,0 +1,39 @@
+# LaTeX build artifacts
+*.aux
+*.log
+*.out
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.toc
+*.blg
+*.bbl
+
+# Large result directories (PNG plots; CSVs are tracked)
+results/
+results2/
+results3/
+results4/
+results5/
+results6/
+results7/
+results8/
+results9/
+results10/
+resultsA/
+resultsB/
+resultsC/
+resultsTheory/*.png
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+venv/
+
+# GCP / shell experiment logs
+exp8_local.log
