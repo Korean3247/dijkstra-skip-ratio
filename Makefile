@@ -8,13 +8,20 @@
 #   make reproduce-sensitivity # §VII:    source-vertex sensitivity
 #   make reproduce-heap-py     # §VII:    Python indexed/d-ary heap comparison
 #   make reproduce-heap-cpp    # §VII:    C++ indexed/d-ary heap comparison
-#   make reproduce-tables      # §V–VI:   timing + Dial's experiments (Python)
+#   make reproduce-tables      # §V:      Python timing experiments (heapq/Fibonacci/Dial's)
+#   make reproduce-cpp-timing  # §V:      C++ timing experiments
+#   make reproduce-real        # §VI:     SNAP real-world experiments (C++ + Python)
 #   make reproduce-all         # run all of the above in dependency order
 #   make pdf                   # compile paper.tex → paper.pdf
 #   make clean-results         # remove generated CSV/PNG (keep paper.pdf)
 #
 # Requirements: Python 3.11+, pip install -r requirements.txt
-#               C++: g++ -O2 -std=c++17 (OpenMP for expA)
+# C++ (g++ -O2 -std=c++17): all C++ targets
+# OpenMP (expA only): on Apple clang, install libomp first:
+#   brew install libomp
+#   export LDFLAGS="-L$(brew --prefix libomp)/lib"
+#   export CPPFLAGS="-I$(brew --prefix libomp)/include"
+# Alternatively use GCC: make GPP=g++-14 reproduce-real
 
 PYTHON   = python3
 GPP      = g++

@@ -25,17 +25,13 @@ resultsB/**/*.png
 resultsC/**/*.png
 resultsTheory/*.png
 
-# Intermediate / unreferenced result directories
+# Truly intermediate / unreferenced result directories
 results/
-results3/
 results4/
-results5/
-results6/
-results8/
-results9/
 
-# CSVs from core paper experiments ARE tracked (see below)
-# results2/, results7/, results10/, resultsA/, resultsB/, resultsC/ → tracked
+# All paper-referenced experiment CSVs are tracked:
+# results2/, results3/, results5/, results6/, results7/, results8/,
+# results9/, results10/, resultsA/, resultsB/, resultsC/ → tracked
 
 # Compiled C++ binaries
 heap_compare

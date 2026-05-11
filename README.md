@@ -39,9 +39,15 @@ where `k` is the mean degree of the random **undirected** graph, under U[1,100] 
 ├── source_sensitivity.py           # §VII source-vertex sensitivity experiment
 ├── bootstrap_ci.py                 # §III bootstrap 95% CI for α and c
 │
-├── results2/experiment2_*.csv      # §III V-independence raw data
-├── results7/experiment7_*.csv      # §V  Python timing (heapq/Fibonacci/Dial's)
-├── results10/experiment10_*.csv    # §VI SNAP real-world validation
+│   (all paper-referenced CSV results are committed to Git)
+├── results2/experiment2_*.csv      # §III V-independence
+├── results3/experiment3_*.csv      # §III extended V-independence
+├── results5/experiment5_*.csv      # §V  threshold heuristic (Experiment 5)
+├── results6/experiment6_*.csv      # §V  Python Fibonacci vs heapq (Exp. 6)
+├── results7/experiment7_*.csv      # §V  Python timing (Exp. 7)
+├── results8/experiment8_*.csv      # §V  Dial's natural pruning (Exp. 8)
+├── results9/experiment9_*.csv      # §V  float-weight comparison (Exp. 9, Python+C++)
+├── results10/experiment10_*.csv    # §VI SNAP real-world validation (Exp. 10)
 ├── resultsA/experimentA_*.csv      # §IV large-V experiment
 ├── resultsB/experimentB_*.csv      # §VI Dial's W-sensitivity
 ├── resultsC/experimentC_*.csv      # §VI Python real-graph
@@ -120,7 +126,8 @@ Python 3.11+ (tested on 3.14.2). All required packages are listed in
 `requirements.txt`. The code uses only stable NumPy APIs; `numpy>=1.24`
 is the minimum, but NumPy 2.4.4 was used for the paper's results.  
 C++ experiments require g++ with `-O2` (tested with Apple clang 17); OpenMP
-is needed only for `dijkstra_experimentA.cpp`.
+is needed only for `dijkstra_experimentA.cpp`. On Apple clang, install
+`libomp` first (`brew install libomp`) or use GCC (`make GPP=g++-14 reproduce-real`).
 
 ### Theory Probe (§III–IV)
 
