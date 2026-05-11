@@ -93,9 +93,9 @@ python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Python 3.11+ (tested on 3.14.2), NumPy ≥2.4 (tested on 2.4.4).  
-All required packages are listed in `requirements.txt` (`numpy`, `scipy`,
-`matplotlib`, `networkx`, `pandas`, `tqdm`).  
+Python 3.11+ (tested on 3.14.2). All required packages are listed in
+`requirements.txt`. The code uses only stable NumPy APIs; `numpy>=1.24`
+is the minimum, but NumPy 2.4.4 was used for the paper's results.  
 C++ experiments require g++ with `-O2` (tested with Apple clang 17); OpenMP
 is needed only for `dijkstra_experimentA.cpp`.
 

@@ -25,6 +25,16 @@ resultsB/
 resultsC/
 resultsTheory/*.png
 
+# Compiled C++ binaries
+heap_compare
+exp7
+exp9
+expA
+expB
+
+# Claude Code session data
+.claude/
+
 # macOS
 .DS_Store
 
