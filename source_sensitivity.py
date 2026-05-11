@@ -7,6 +7,10 @@ and reports mean ± std of skip_ratio across sources.
 
 Key question: is the single-source-vertex design (node 0) in the main
 experiments a methodological concern?
+
+Graph model: undirected Erdős–Rényi G(V, m = V*k // 2),
+U[1,100] integer weights, with a random spanning tree for connectivity.
+Matches the graph model of theory_probe_v4.py (main experiments).
 """
 
 import heapq
@@ -16,18 +20,29 @@ import math
 from datetime import datetime
 
 def make_graph(V, k, seed=None):
+    """
+    Undirected ER graph: V*k//2 random edges, each added in both directions.
+    A random spanning tree ensures connectivity.
+    Matches theory_probe_v4.py (mean degree ≈ k).
+    """
     rng = random.Random(seed)
     graph = [[] for _ in range(V)]
-    m = V * k
-    for _ in range(m):
+    n_edges = V * k // 2
+    for _ in range(n_edges):
         u = rng.randint(0, V-1)
         v = rng.randint(0, V-1)
+        if u != v:
+            w = rng.randint(1, 100)
+            graph[u].append((w, v))
+            graph[v].append((w, u))
+    # random spanning tree for connectivity
+    nodes = list(range(V))
+    rng.shuffle(nodes)
+    for i in range(V-1):
+        u, v = nodes[i], nodes[i+1]
         w = rng.randint(1, 100)
         graph[u].append((w, v))
-    # spanning path for connectivity
-    for i in range(V-1):
-        w = rng.randint(1, 100)
-        graph[i].append((w, i+1))
+        graph[v].append((w, u))
     return graph
 
 def dijkstra_skip(graph, src, V):

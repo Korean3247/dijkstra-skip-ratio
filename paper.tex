@@ -53,7 +53,7 @@ a power law in average degree $k$:
 $\text{skip\_ratio}(k)\approx 1 - 0.884/k^{0.262}$
 ($R^2{=}0.984$, $\mathrm{U}[1,100]$ weights, OLS SE $\pm0.013$ on the
 exponent), independent of graph size $V$ across more than three orders
-of magnitude ($V\in[500,\,10^6]$; source-vertex CV $<3\%$).
+of magnitude ($V\in[500,\,10^6]$; source-vertex CV $\leq 2.5\%$).
 Systematic experiments across weight distributions reveal an
 empirical \emph{two-regime model}: the power-law exponent $\alpha$ is
 strongly associated with $\log(W_{\max}/W_{\min})$ and the fitted
@@ -606,11 +606,11 @@ $\alpha(k) \equiv -\partial\ln(1-\text{skip\_ratio})/\partial\ln k$
 decreases monotonically and \emph{approaches} $1/H_k$ from above
 (see Figure~\ref{fig:local_alpha}).
 Concretely, for continuous weights:
-\[
-\alpha(k\!=\!32{\to}64)\approx 0.270, \quad
-\alpha(k\!=\!128{\to}256)\approx 0.204, \quad
-\alpha(k\!=\!256{\to}512)\approx 0.183,
-\]
+\begin{align*}
+\alpha(k\!=\!32{\to}64)   &\approx 0.270, \quad
+\alpha(k\!=\!128{\to}256)  \approx 0.204, \\
+\alpha(k\!=\!256{\to}512) &\approx 0.183,
+\end{align*}
 while $1/H_{64}\approx 0.211$, $1/H_{256}\approx 0.163$.
 The behavior of $\alpha(k)/(1/H_k)$ is \emph{distribution-specific}
 and must be interpreted with care.
@@ -667,10 +667,8 @@ consistent with a \emph{two-regime} empirical model:
 \begin{equation}
 \text{skip\_ratio}(k) \;\approx\;
 \begin{cases}
-  1 - c(F,W)\,/\,k^{\alpha(F,W)} & k \lesssim 100
-    \quad\text{(power-law regime)} \\
-  1 - A(F)\,/\,H_k & k \gg 100
-    \quad\text{(harmonic regime)}
+  1 - c(F,W)\,/\,k^{\alpha(F,W)}, & k \lesssim 100 \\
+  1 - A(F)\,/\,H_k,               & k \gg 100
 \end{cases}
 \label{eq:tworegime}
 \end{equation}
@@ -725,11 +723,11 @@ so that the minimum always surfaces correctly.
 $V=1{,}000$, 5 random seeds).
 $\theta=\infty$ is the unmodified baseline.}
 \label{tab:threshold}
-\small
-\setlength{\tabcolsep}{4pt}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
 \begin{tabular}{cccccc}
 \toprule
-Graph & $\theta$ & Wrong nodes (\%) & Push reduc. & Time (ms) & Speedup \\
+Graph & $\theta$ & Wrong (\%) & Push reduc. & Time (ms) & Speedup \\
 \midrule
 \multirow{4}{*}{\shortstack{sparse\\$k=10$}}
  & $\infty$ & 0.0  & 0\%   & 3.69 & 1.00$\times$ \\
@@ -1016,9 +1014,9 @@ $W^{*}$ is the maximum edge weight below which Dial's beats heapq
 \label{tab:framework}
 \small
 \renewcommand{\arraystretch}{1.2}
-\begin{tabular}{p{2.3cm}p{1.5cm}p{3.5cm}}
+\begin{tabular}{p{2.2cm}p{1.7cm}p{3.4cm}}
 \toprule
-\textbf{Condition} & \textbf{Recommended} & \textbf{Rationale} \\
+\textbf{Condition} & \textbf{Recomm.} & \textbf{Rationale} \\
 \midrule
 Integer weights, any $k$, $W \leq W^{*}$\,\textsuperscript{\dag} &
   Dial's bucket queue &
@@ -1033,9 +1031,14 @@ Float weights, $k \leq 10$ (sparse) &
   heapq (lazy deletion) &
   skip\_ratio $<0.5$; overhead acceptable; simplest implementation. \\
 \addlinespace
-Float weights, $k > 10$ (dense) &
+Float weights, $k > 10$ (dense, C++) &
+  Indexed or 4-ary heap &
+  C++ indexed heap $1.4$--$2.2\times$ faster than lazy binary for $k\!\geq\!8$;
+  4-ary heap $1.4$--$1.6\times$ faster (see §\ref{sec:heapcompare}). \\
+\addlinespace
+Float weights, $k > 10$ (dense, Python) &
   heapq (lazy deletion) &
-  Fibonacci does not outperform heapq even in C++; no benefit to switch. \\
+  Fibonacci and indexed heap do not outperform heapq in Python; lazy wins. \\
 \addlinespace
 Fibonacci heap &
   Avoid in practice &
@@ -1068,7 +1071,7 @@ Figure~\ref{fig:overlay}.
 \caption{Formula validation on SNAP real-world graphs (Experiment~10).}
 \label{tab:realworld}
 \small
-\setlength{\tabcolsep}{4pt}
+\setlength{\tabcolsep}{3pt}
 \begin{tabular}{lrrrrr}
 \toprule
 Dataset & $V$ & $E$ & $k$ & Measured & Predicted \\
@@ -1213,6 +1216,7 @@ We recommend against Fibonacci heaps unless theoretical guarantees are
 mandated by a formal proof system.
 
 \noindent\textbf{Indexed and $d$-ary heaps (supplemental experiment).}
+\label{sec:heapcompare}
 To probe the two most commonly suggested alternatives to lazy binary heapq,
 we ran a Python supplemental experiment (\texttt{dijkstra\_heap\_compare.py})
 across $V\in\{500,1000,3000,5000,10000\}$ and $k\in\{4,8,16,32,64,128\}$
@@ -1247,13 +1251,32 @@ Section~\ref{sec:comparison}.
 across all $(V,k)$ configurations tested.  The extra branching factor
 reduces tree height but adds per-level comparison work with no cache
 benefit in Python's interpreted loop; the slowdown versus binary ranges
-from $1.2\times$ at $k=4$ to $1.7\times$ at $k=64$.  In optimized
-C++, $d$-ary heaps can outperform binary heaps due to SIMD-friendly
-child comparisons~\cite{ahuja1993}; extending the C++ benchmark to $d$-ary
-heaps is a natural next step.
-\emph{Pairing heaps} offer favorable amortized decrease-key and have not been
-characterized under lazy deletion; extending the selection framework to
-them remains open.
+from $1.2\times$ at $k=4$ to $1.7\times$ at $k=64$.
+
+\textit{C++ heap comparison} (\texttt{dijkstra\_\allowbreak heap\_\allowbreak compare.cpp}).
+We repeated the four-variant comparison in optimized C++ (\texttt{-O2},
+Apple M3, directed ER with $m=Vk$ edges).
+The key findings reverse relative to Python.
+First, in C++ the 4-ary lazy heap is consistently \textbf{faster} than
+the lazy binary heap by $1.4$--$1.6\times$ ($V=10{,}000$, $k=4$:
+0.76\,ms vs.\ 1.22\,ms; $k=128$: 3.95\,ms vs.\ 5.61\,ms); the reduced
+tree height offsets the wider sift-down scan once interpreted-loop
+overhead is removed.
+Second, the indexed binary heap outperforms lazy binary by
+$1.4$--$2.2\times$ for $k\geq 8$: at $V=10{,}000$, $k=32$ the indexed
+heap takes 1.31\,ms vs.\ lazy binary's 2.83\,ms ($2.2\times$ faster).
+This advantage grows with $k$ because the lazy heap accumulates
+$O(\text{push\_count})$ entries (cache misses increase), whereas the
+indexed heap maintains exactly $V$ entries throughout.
+In Python the reverse held because heapq's C implementation makes each
+push cheaper than a decrease-key position lookup in interpreted code.
+The C++ results suggest that for high-$k$ graphs in production code, an
+indexed heap or a $d$-ary lazy heap ($d=4$) is preferable to binary
+lazy deletion, even absent a skip-ratio reduction.
+Results are saved to \texttt{resultsHeapCompare/\allowbreak heap\_compare\_cpp\_*.csv}.
+\emph{Pairing heaps} offer favorable amortized decrease-key and have not
+been characterized under lazy deletion; extending the selection framework
+to them remains open.
 
 \noindent\textbf{Statistical note.}
 Main experiments (Sections~\ref{sec:analysis}--\ref{sec:comparison}) use
@@ -1266,13 +1289,16 @@ Weight-distribution experiments (Section~\ref{sec:weightdist}) use
 \noindent\textbf{Source-vertex sensitivity.}
 All main experiments use source vertex~0 (seed~42).  To verify that this
 design choice does not inflate or suppress the measured skip\_ratio, we
-ran a supplementary experiment sampling 20 uniformly random source
-vertices across 5 graph instances, for $V\in\{1{,}000,\,3{,}000,\,10{,}000\}$
-and $k\in\{4,8,16,32,64,128\}$ ($\mathrm{U}[1,100]$).
+ran a supplementary experiment (\texttt{source\_sensitivity.py}) sampling
+20 uniformly random source vertices across 5 graph instances, for
+$V\in\{1{,}000,\,3{,}000,\,10{,}000\}$ and $k\in\{4,8,16,32,64,128\}$
+($\mathrm{U}[1,100]$).  The graph model matches \texttt{theory\_probe\_v4.py}
+exactly: undirected ER with $m=\lfloor Vk/2\rfloor$ random edges plus a
+random spanning tree, so skip\_ratio values are directly comparable to the
+main results.
 The coefficient of variation of skip\_ratio across sources is at most
-$2.6\%$ (at $V=1{,}000$, $k=4$, where skip\_ratio is smallest) and falls
-below $0.5\%$ for $k\geq 64$.
-Standard deviation across sources does not exceed $0.009$ at any $(V,k)$
+$2.5\%$ (at $V=1{,}000$, $k=4$) and falls below $0.5\%$ for $k\geq 64$.
+Standard deviation across sources does not exceed $0.010$ at any $(V,k)$
 tested.  We conclude that skip\_ratio is effectively source-independent for
 the ER-like graphs studied here, consistent with the locally tree-like
 theory (the expected push count per vertex depends only on local degree
