@@ -369,8 +369,8 @@ C++ binaries compiled with \texttt{g++ -O2 -std=c++17}.
 Python 3.11, NumPy 2.4.
 
 \noindent\textbf{Reproducibility.}
-Code, experiment scripts (Python and C++), and raw CSV data are available at
-\url{https://github.com/Korean3247/dijkstra-skip-ratio}.
+All code, experiment scripts (Python and C++), and raw CSV data are
+available at \url{https://github.com/Korean3247/dijkstra-skip-ratio}.
 
 \subsection{Results}
 
@@ -1225,12 +1225,12 @@ timing comparisons within this experiment are internally consistent, but
 cross-experiment absolute times should not be compared directly.
 
 \textit{Skip-ratio is implementation-invariant.}
-All three lazy-deletion variants (binary, 4-ary, 8-ary heaps) produced
-skip\_ratios within $\pm 0.001$ of each other at every $(V,k)$ tested.
-Representative values at $V=3{,}000$: $0.242$, $0.438$, $0.573$, $0.660$,
-$0.711$, $0.746$ for $k=4,8,16,32,64,128$ respectively.
-As expected, the \emph{indexed} binary heap achieves skip\_ratio$\,=0$
-throughout by maintaining a position array for $O(\log V)$ decrease-key.
+All three lazy-deletion variants (binary, 4-ary, 8-ary) produced
+skip\_ratios within $\pm 0.001$ of each other at every $(V,k)$ tested;
+representative values at $V=3{,}000$ are $0.242$, $0.438$, $0.573$,
+$0.660$, $0.711$, $0.746$ for $k=4,8,16,32,64,128$.
+The \emph{indexed} binary heap achieves skip\_ratio$\,=0$ by maintaining
+a position array that supports $O(\log V)$ decrease-key operations.
 
 \textit{Lazy binary heapq vs.\ indexed heap (Python).}
 Despite zero skip overhead, the indexed heap is consistently \emph{slower}

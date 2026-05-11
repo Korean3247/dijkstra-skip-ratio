@@ -86,12 +86,28 @@ Reports 95% bootstrap CI for α and c over B=10,000 resamples.
 
 ## Reproducing the Results
 
-### Requirements
+### Quick Start (all experiments)
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
+make reproduce-all   # runs all experiments in dependency order
+make pdf             # recompile paper.tex → paper.pdf
 ```
+
+Individual targets:
+
+```
+make reproduce-theory      # §III–IV power-law fits         (~10–20 min)
+make reproduce-bootstrap   # §III    bootstrap 95% CI       (requires theory output)
+make reproduce-sensitivity # §VII    source-vertex CV       (~2 min)
+make reproduce-heap-py     # §VII    Python heap comparison (~5–10 min)
+make reproduce-heap-cpp    # §VII    C++ heap comparison    (~2 min)
+make reproduce-tables      # §V–VI   timing experiments
+make help                  # show all targets
+```
+
+### Requirements
 
 Python 3.11+ (tested on 3.14.2). All required packages are listed in
 `requirements.txt`. The code uses only stable NumPy APIs; `numpy>=1.24`
