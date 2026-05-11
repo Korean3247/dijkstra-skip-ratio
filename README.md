@@ -89,11 +89,15 @@ Reports 95% bootstrap CI for α and c over B=10,000 resamples.
 ### Requirements
 
 ```bash
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Python 3.11+ (tested on 3.14.2), NumPy ≥2.4 (tested on 2.4.4), SciPy, Matplotlib.  
-C++ experiments require g++ with `-O2` and OpenMP.
+Python 3.11+ (tested on 3.14.2), NumPy ≥2.4 (tested on 2.4.4).  
+All required packages are listed in `requirements.txt` (`numpy`, `scipy`,
+`matplotlib`, `networkx`, `pandas`, `tqdm`).  
+C++ experiments require g++ with `-O2` (tested with Apple clang 17); OpenMP
+is needed only for `dijkstra_experimentA.cpp`.
 
 ### Theory Probe (§III–IV)
 
@@ -125,14 +129,14 @@ The ca-GrQc network is downloaded automatically from SNAP (Stanford) on first ru
 
 ## Key Results
 
-| Setting | Geometric mean speedup |
+| Setting | Result |
 |---|---|
-| C++ lazy vs. indexed heap (Dijkstra timing, §V) | **2.9×** |
-| C++ peak speedup with Dial's bucket queue | **4.3×** |
-| Python lazy vs. indexed heap (§V) | **1.5×** |
-| C++ indexed heap vs. lazy binary (heap compare, §VII) | **1.4–2.2× faster** |
-| C++ 4-ary heap vs. lazy binary (heap compare, §VII) | **1.4–1.6× faster** |
-| Source-vertex CV (skip_ratio stability) | **≤ 2.5%** |
+| C++ Dial's bucket queue vs. heapq (§V, geometric mean) | **2.9× faster** |
+| C++ Dial's bucket queue peak (large k, §V) | **4.3× faster** |
+| Python Dial's vs. heapq geometric mean (§V) | **1.5× faster** |
+| C++ indexed heap vs. lazy binary (supplemental §VII) | **1.4–2.2× faster** at k≥8 |
+| C++ 4-ary lazy heap vs. binary heapq (supplemental §VII) | **1.4–1.6× faster** |
+| Source-vertex CV (skip_ratio stability, §VII) | **≤ 2.5%** across 20 sources |
 
 See `resultsTheory/alpha_fits_*.csv` for fitted power-law exponents and R² values across distributions.
 

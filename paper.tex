@@ -46,7 +46,7 @@ A Data-Structure Selection Framework Based on Average Degree}
 Dijkstra's algorithm with a lazy deletion heap (heapq) is the de facto
 standard for shortest-path computation, yet the overhead of its
 ``push-and-skip'' strategy has not, to our knowledge, been
-systematically quantified as a closed-form function of graph structure.
+systematically quantified as a closed-form empirical model of graph structure.
 We identify \emph{skip\_ratio}---the fraction of heap pops discarded as
 stale---as the primary hidden cost, and show empirically that it follows
 a power law in average degree $k$:
@@ -68,7 +68,7 @@ Fibonacci heap is $1.5$--$2.3\times$ \emph{slower} than heapq despite
 its asymptotic optimality.
 The power-law formula generalizes to Barab\'{a}si--Albert scale-free
 graphs ($<8\%$ error) but diverges on planar road networks---consistent
-with the locally tree-like structure underlying the formula's derivation.
+with the locally tree-like structure underlying the formula's modeling assumptions.
 We conclude with a practitioner-ready data-structure selection framework
 grounded in $k$ and weight type.
 \end{abstract}
@@ -97,7 +97,7 @@ competitive-programming guide.
 
 Yet the cost of these silently discarded pops---what we term
 \textbf{skip\_ratio}---has not, to the best of our knowledge, been
-systematically quantified as a closed-form function of graph structure.
+systematically quantified as a closed-form empirical model of graph structure.
 Prior experimental surveys (e.g., Cherkassky et al.~\cite{cherkassky1996},
 Larkin et al.~\cite{larkin2014}) treat the lazy deletion overhead as an
 implementation detail rather than decomposing it by graph properties.
@@ -108,7 +108,7 @@ alternative data structure.
 This paper addresses three research questions:
 \begin{enumerate}
   \item \textbf{RQ1.} What graph property determines skip\_ratio, and can
-        it be expressed as a closed-form function?
+        it be captured by a closed-form empirical model?
   \item \textbf{RQ2.} Can simple algorithmic modifications (e.g., capping
         heap duplicates) reduce the overhead without sacrificing correctness?
   \item \textbf{RQ3.} Which alternative data structures genuinely eliminate
@@ -184,8 +184,8 @@ empirical study of priority queues and confirm that simple binary heaps
 dominate in practice---a finding our work extends by quantifying \emph{why}:
 the hidden lazy deletion overhead, expressed as a function of average degree,
 is the key differentiator.  However, neither study decomposes the lazy
-deletion overhead as a function of average degree, nor derives a closed-form
-predictive formula for the skip-pop fraction.
+deletion overhead as a function of average degree, nor proposes a
+closed-form empirical model for the skip-pop fraction.
 
 Beyond binary heaps, $d$-ary heaps and pairing heaps have been studied as
 alternatives~\cite{ahuja1993}.  $D$-ary heaps reduce the height of the heap
@@ -203,8 +203,8 @@ overhead itself}---a factor that prior engineering studies treat as given
 rather than as a variable to optimize.  Closest in spirit is Chen
 et al.~\cite{chen2007}, who study priority queue performance in shortest-path
 algorithms, but without decomposing overhead by average degree or deriving a
-predictive formula.  To the best of our knowledge, no prior work derives a closed-form
-power-law characterization $\text{skip\_ratio}(k)\approx 1-c/k^{\alpha}$
+predictive formula.  To the best of our knowledge, no prior work proposes a closed-form
+empirical power-law model $\text{skip\_ratio}(k)\approx 1-c/k^{\alpha}$
 or a data-structure selection framework grounded in skip\_ratio as a
 function of average degree.
 
@@ -585,11 +585,9 @@ $W$ & $\alpha$ & $c$ & $W$ & $\alpha$ & $c$ \\
 \noindent\textbf{Finding~2: The key structural parameter is
 $\log(W_{\max}/W_{\min})$.}
 When the \emph{range} is fixed at 100 but the minimum weight
-$W_{\min}$ varies, $\alpha$ tracks
-$\log(W_{\max}/W_{\min})$ rather than either endpoint alone:
-$W_{\min}=1\to\alpha=0.272$;
-$W_{\min}=10\to\alpha=0.204$;
-$W_{\min}=100\to\alpha=0.096$.
+$W_{\min}$ varies, $\alpha$ tracks $\log(W_{\max}/W_{\min})$ rather
+than either endpoint alone: $W_{\min}=1\to\alpha=0.272$,
+$W_{\min}=10\to\alpha=0.204$, $W_{\min}=100\to\alpha=0.096$.
 Intuitively, $\log(W_{\max}/W_{\min})$ measures how many ``orders of
 magnitude'' of weight diversity compete for shortest paths.
 
@@ -1014,7 +1012,9 @@ $W^{*}$ is the maximum edge weight below which Dial's beats heapq
 \label{tab:framework}
 \small
 \renewcommand{\arraystretch}{1.2}
-\begin{tabular}{p{2.2cm}p{1.7cm}p{3.4cm}}
+\begin{tabular}{>{\raggedright\arraybackslash}p{2.2cm}
+                >{\raggedright\arraybackslash}p{1.7cm}
+                >{\raggedright\arraybackslash}p{3.4cm}}
 \toprule
 \textbf{Condition} & \textbf{Recomm.} & \textbf{Rationale} \\
 \midrule
@@ -1031,14 +1031,14 @@ Float weights, $k \leq 10$ (sparse) &
   heapq (lazy deletion) &
   skip\_ratio $<0.5$; overhead acceptable; simplest implementation. \\
 \addlinespace
-Float weights, $k > 10$ (dense, C++) &
-  Indexed or 4-ary heap &
-  C++ indexed heap $1.4$--$2.2\times$ faster than lazy binary for $k\!\geq\!8$;
-  4-ary heap $1.4$--$1.6\times$ faster (see §\ref{sec:heapcompare}). \\
+Float weights, $k > 10$, C++ (supplemental) &
+  Consider indexed/4-ary &
+  Supplemental evidence (§\ref{sec:heapcompare}): indexed $1.4$--$2.2\times$
+  faster, 4-ary $1.4$--$1.6\times$ faster; verify on target platform. \\
 \addlinespace
-Float weights, $k > 10$ (dense, Python) &
+Float weights, $k > 10$, Python &
   heapq (lazy deletion) &
-  Fibonacci and indexed heap do not outperform heapq in Python; lazy wins. \\
+  Indexed and $d$-ary heaps slower than heapq in Python; lazy wins. \\
 \addlinespace
 Fibonacci heap &
   Avoid in practice &
@@ -1228,11 +1228,11 @@ cross-experiment absolute times should not be compared directly.
 
 \textit{Skip-ratio is implementation-invariant.}
 All three lazy-deletion variants (binary, 4-ary, 8-ary heaps) produced
-skip\_ratios within $\pm 0.001$ of each other at every $(V,k)$ point
-($V=3{,}000$ representative values: $0.242$, $0.438$, $0.573$, $0.660$,
-$0.711$, $0.746$ for $k=4,8,16,32,64,128$).
+skip\_ratios within $\pm 0.001$ of each other at every $(V,k)$ tested.
+Representative values at $V=3{,}000$: $0.242$, $0.438$, $0.573$, $0.660$,
+$0.711$, $0.746$ for $k=4,8,16,32,64,128$ respectively.
 As expected, the \emph{indexed} binary heap achieves skip\_ratio$\,=0$
-by maintaining a position array for O(log $V$) decrease-key.
+throughout by maintaining a position array for $O(\log V)$ decrease-key.
 
 \textit{Lazy binary heapq vs.\ indexed heap (Python).}
 Despite zero skip overhead, the indexed heap is consistently \emph{slower}
@@ -1258,13 +1258,13 @@ We repeated the four-variant comparison in optimized C++ (\texttt{-O2},
 Apple M3, directed ER with $m=Vk$ edges).
 The key findings reverse relative to Python.
 First, in C++ the 4-ary lazy heap is consistently \textbf{faster} than
-the lazy binary heap by $1.4$--$1.6\times$ ($V=10{,}000$, $k=4$:
-0.76\,ms vs.\ 1.22\,ms; $k=128$: 3.95\,ms vs.\ 5.61\,ms); the reduced
-tree height offsets the wider sift-down scan once interpreted-loop
-overhead is removed.
+the lazy binary heap by $1.4$--$1.6\times$ ($V=10{,}000$: 0.76\,ms
+vs.\ 1.22\,ms at $k=4$; 3.95\,ms vs.\ 5.61\,ms at $k=128$); the
+reduced tree height offsets the wider sift-down scan once the
+interpreted-loop overhead is removed.
 Second, the indexed binary heap outperforms lazy binary by
 $1.4$--$2.2\times$ for $k\geq 8$: at $V=10{,}000$, $k=32$ the indexed
-heap takes 1.31\,ms vs.\ lazy binary's 2.83\,ms ($2.2\times$ faster).
+heap takes 1.31\,ms vs.\ 2.83\,ms for lazy binary ($2.2\times$).
 This advantage grows with $k$ because the lazy heap accumulates
 $O(\text{push\_count})$ entries (cache misses increase), whereas the
 indexed heap maintains exactly $V$ entries throughout.
@@ -1333,9 +1333,10 @@ Three open questions arise naturally from this study:
 \label{sec:conclusion}
 
 We have presented a systematic empirical characterization of the
-lazy deletion overhead in Dijkstra's algorithm as a closed-form function
-of graph structure, filling a gap in prior experimental surveys that
-treat this overhead as a fixed implementation detail.  Our key findings are:
+lazy deletion overhead in Dijkstra's algorithm as a closed-form
+\emph{empirical model} of graph structure, filling a gap in prior
+experimental surveys that treat this overhead as a fixed implementation
+detail.  Our key findings are:
 
 \begin{enumerate}
   \item \textbf{Power-law skip\_ratio, V-independent.}
