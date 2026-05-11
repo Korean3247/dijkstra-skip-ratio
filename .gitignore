@@ -9,21 +9,33 @@
 *.blg
 *.bbl
 
-# Large result directories (PNG plots; CSVs are tracked)
+# PNG plots (large; not tracked)
+results/**/*.png
+results2/**/*.png
+results3/**/*.png
+results4/**/*.png
+results5/**/*.png
+results6/**/*.png
+results7/**/*.png
+results8/**/*.png
+results9/**/*.png
+results10/**/*.png
+resultsA/**/*.png
+resultsB/**/*.png
+resultsC/**/*.png
+resultsTheory/*.png
+
+# Intermediate / unreferenced result directories
 results/
-results2/
 results3/
 results4/
 results5/
 results6/
-results7/
 results8/
 results9/
-results10/
-resultsA/
-resultsB/
-resultsC/
-resultsTheory/*.png
+
+# CSVs from core paper experiments ARE tracked (see below)
+# results2/, results7/, results10/, resultsA/, resultsB/, resultsC/ → tracked
 
 # Compiled C++ binaries
 heap_compare

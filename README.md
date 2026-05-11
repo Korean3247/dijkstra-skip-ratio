@@ -39,6 +39,13 @@ where `k` is the mean degree of the random **undirected** graph, under U[1,100] 
 ├── source_sensitivity.py           # §VII source-vertex sensitivity experiment
 ├── bootstrap_ci.py                 # §III bootstrap 95% CI for α and c
 │
+├── results2/experiment2_*.csv      # §III V-independence raw data
+├── results7/experiment7_*.csv      # §V  Python timing (heapq/Fibonacci/Dial's)
+├── results10/experiment10_*.csv    # §VI SNAP real-world validation
+├── resultsA/experimentA_*.csv      # §IV large-V experiment
+├── resultsB/experimentB_*.csv      # §VI Dial's W-sensitivity
+├── resultsC/experimentC_*.csv      # §VI Python real-graph
+│
 ├── resultsTheory/                  # CSV outputs of theory_probe_v4.py
 │   ├── alpha_fits_*.csv            # Power-law α fits for 3 distributions × 4 k-ranges
 │   ├── local_slope_*.csv           # Local slopes and H_k ratios
@@ -150,8 +157,8 @@ The ca-GrQc network is downloaded automatically from SNAP (Stanford) on first ru
 | C++ Dial's bucket queue vs. heapq (§V, geometric mean) | **2.9× faster** |
 | C++ Dial's bucket queue peak (large k, §V) | **4.3× faster** |
 | Python Dial's vs. heapq geometric mean (§V) | **1.5× faster** |
-| C++ indexed heap vs. lazy binary (supplemental §VII) | **1.4–2.2× faster** at k≥8 |
-| C++ 4-ary lazy heap vs. binary heapq (supplemental §VII) | **1.4–1.6× faster** |
+| C++ indexed heap vs. lazy binary (supplemental §VII, Apple M3, directed ER) | **1.4–2.2× faster** at k≥8 |
+| C++ 4-ary lazy heap vs. binary heapq (supplemental §VII, Apple M3, directed ER) | **1.4–1.6× faster** |
 | Source-vertex CV (skip_ratio stability, §VII) | **≤ 2.5%** across 20 sources |
 
 See `resultsTheory/alpha_fits_*.csv` for fitted power-law exponents and R² values across distributions.

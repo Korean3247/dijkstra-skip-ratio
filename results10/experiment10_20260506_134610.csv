@@ -1,0 +1,4 @@
+dataset,desc,V,E,k_actual,skip_ratio_mean,skip_ratio_std,predicted,rel_err,time_per_src_ms
+ca-GrQc,협업 네트워크 (Arxiv GrQc),5241,14484,5.5272,0.334764,0.00244,0.435172,0.230731,10.72
+ego-Facebook,소셜 네트워크 (Facebook ego),4039,88234,43.691,0.654916,0.00102,0.671399,0.024549,36.06
+roadNet-CA,도로망 (California),1965206,2766607,2.8156,0.116059,7.2e-05,0.325992,0.643981,5871.11
